@@ -31,6 +31,8 @@
 #include "fastjet/contrib/NjettinessPlugin.hh"
 #include "fastjet/contrib/MeasureDefinition.hh"
 #include "fastjet/contrib/EnergyCorrelator.hh"
+#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 
 const double DUMMY=-99999.;
 
@@ -441,7 +443,54 @@ jetTree::Fill(const edm::Event& iEvent, edm::EventSetup const& iSetup){
         jetMuoEF_.push_back(jet->userFloat("MUF_"));
         jetCMulti_.push_back(jet->userFloat("CHM_"));
         jetNMultiplicity_.push_back(jet->userFloat("NumNeutralParticles_"));
+	
+	int   leadTrkPID = DUMMY;
+        float leadTrkPt  = DUMMY;
+        float leadTrkEta = DUMMY;
+        float leadTrkPhi = DUMMY;
+        float leadTrkE   = DUMMY;
+	float Impdz= DUMMY;
+	//float ImpdzError = DUMMY;
+	float Impdxz= DUMMY;
+	//float ImpdxyError = DUMMY;
 
+	std::vector daus(jet->daughterPtrVector());
+        std::sort(daus.begin(), daus.end(), [](const reco::CandidatePtr &p1, const reco::CandidatePtr &p2) { return p1->pt() > p2->pt(); });
+        //for (unsigned int i2 = 0, n = daus.size(); i2 < n && i2 <= 3; ++i2) {
+	for (unsigned int i2 = 0; i2< daus.size(); ++i2) {
+                const pat::PackedCandidate &pfcand = dynamic_cast<const pat::PackedCandidate &>(*daus[i2]);
+                int charge = pfcand.charge();
+
+                //if (charge!=0 and pfcand.pt()>leadTrkPt){
+                if (charge!=0 and pfcand.pt()>0.0){
+                cout << " Jet Charge "<< charge<< endl;
+                leadTrkPt = pfcand.pt();
+                leadTrkEta = pfcand.eta();
+                leadTrkPhi = pfcand.phi();
+                leadTrkE = pfcand.energy();
+                leadTrkPID = pfcand.pdgId();
+		Impdz = pfcand.dz();
+		//ImpdzError = pfcand.dzError();
+		Impdxz = pfcand.dxy();
+		//ImpdxyError = pfcand.dxyError();
+
+            //    }
+          //  }
+        jetLeadTrackPID_.push_back(leadTrkPID);
+        jetLeadTrackPt_.push_back(leadTrkPt);
+        jetLeadTrackEta_.push_back(leadTrkEta);
+        jetLeadTrackPhi_.push_back(leadTrkPhi);
+        jetLeadTrackE_.push_back(leadTrkE);
+	impdz_.push_back(Impdz);
+	//impdzError_.push_back(ImpdzError);
+	impdxz_.push_back(Impdxz);
+	//impdxyError_.push_back(ImpdxyError);
+	   }
+	}		
+
+
+
+     cout << "LEAD TRACK = " << endl; 
     }
     if(!isTHINJet_) {
         if (runOn2016_){
@@ -1004,7 +1053,15 @@ jetTree::SetBranches(){
     AddBranch(&isPUJetIDTight_,  "isPUJetIDTight");
     AddBranch(&bRegNNCorr_,"bRegNNCorr");
     AddBranch(&bRegNNResolution_,"bRegNNResolution");
-
+    AddBranch(&jetLeadTrackPID_,"jetLeadTrackPID");
+    AddBranch(&jetLeadTrackPt_,"jetLeadTrackPt");
+    AddBranch(&jetLeadTrackEta_,"jetLeadTrackEta");
+    AddBranch(&jetLeadTrackPhi_,"jetLeadTrackPhi");
+    AddBranch(&jetLeadTrackE_,"jetLeadTrackE");
+    AddBranch(&impdz_,"impdz");
+    //AddBranch(&impdzError_,"impdzError");
+    AddBranch(&impdxz_,"impdxz");
+    //AddBranch(&impdxyError_,"impdxyError");
   }
 
   if(isFATJet_ || isAK8PuppiJet_ || isCA15PuppiJet_){
@@ -1138,6 +1195,16 @@ jetTree::Clear(){
   bRegNNCorr_.clear();
   bRegNNResolution_.clear();
   //Energy Fraction and Multiplicity
+
+  jetLeadTrackPID_.clear();
+  jetLeadTrackPt_.clear();
+  jetLeadTrackEta_.clear();
+  jetLeadTrackPhi_.clear();
+  jetLeadTrackE_.clear();
+  impdz_.clear();
+  //impdzError_.clear();
+  impdxz_.clear();
+  //impdxyError_.clear();
 
   jetCEmEF_.clear();
   jetCHadEF_.clear();

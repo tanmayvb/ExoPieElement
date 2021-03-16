@@ -176,6 +176,16 @@ class jetTree  : public baseTree{
   std::vector<bool>  isPUJetIDLoose_;
   std::vector<bool>  isPUJetIDMedium_;
   std::vector<bool>  isPUJetIDTight_;
+ 
+  std::vector<int> jetLeadTrackPID_;
+  std::vector<float> jetLeadTrackPt_;
+  std::vector<float> jetLeadTrackEta_;
+  std::vector<float> jetLeadTrackPhi_;
+  std::vector<float> jetLeadTrackE_;
+  std::vector<float> impdz_;
+  //std::vector<float> impdzError_;
+  std::vector<float> impdxz_;
+  //std::vector<float> impdxyError_;
 
   //Energy Fraction and Multiplicity
 
