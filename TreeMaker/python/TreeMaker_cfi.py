@@ -5,13 +5,13 @@ tree = cms.EDAnalyzer(
     fillEventInfo    = cms.bool(True),
     fillMetInfo      = cms.bool(True),
     fillTrigInfo     = cms.bool(True),
-    fillFilterInfo   = cms.bool(True),
+    fillFilterInfo   = cms.bool(False),
 
     fillGenInfo      = cms.bool(True),
 
     fillElecInfo     = cms.bool(True),
     fillMuonInfo     = cms.bool(True),
-    fillTauInfo      = cms.bool(True),
+    fillTauInfo      = cms.bool(False),
     fillPhotInfo     = cms.bool(True),
 
     fillJetInfo      = cms.bool(True),
@@ -78,6 +78,7 @@ tree = cms.EDAnalyzer(
 
     ## Photons
     photonLabel  = cms.InputTag("slimmedPhotons"),
+    tauToken = cms.InputTag("slimmedTaus"),
 
     phoLooseIdMap        = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Fall17-94X-V1-loose"),
     phoMediumIdMap       = cms.InputTag("egmPhotonIDs:cutBasedPhotonID-Fall17-94X-V1-medium"),

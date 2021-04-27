@@ -31,8 +31,6 @@
 #include "fastjet/contrib/NjettinessPlugin.hh"
 #include "fastjet/contrib/MeasureDefinition.hh"
 #include "fastjet/contrib/EnergyCorrelator.hh"
-#include "DataFormats/PatCandidates/interface/PackedCandidate.h"
-#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 
 const double DUMMY=-99999.;
 
@@ -443,55 +441,74 @@ jetTree::Fill(const edm::Event& iEvent, edm::EventSetup const& iSetup){
         jetMuoEF_.push_back(jet->userFloat("MUF_"));
         jetCMulti_.push_back(jet->userFloat("CHM_"));
         jetNMultiplicity_.push_back(jet->userFloat("NumNeutralParticles_"));
-	
-	int   leadTrkPID = DUMMY;
-        float leadTrkPt  = DUMMY;
-        float leadTrkEta = DUMMY;
-        float leadTrkPhi = DUMMY;
-        float leadTrkE   = DUMMY;
-	float Impdz= DUMMY;
-	//float ImpdzError = DUMMY;
-	float Impdxz= DUMMY;
-	//float ImpdxyError = DUMMY;
 
-	std::vector daus(jet->daughterPtrVector());
+      unsigned int nTracks = 0;
+      std::vector<int>   jetIndex;
+      std::vector<int>   TrkPID;
+      std::vector<float> TrkPt;
+      std::vector<float> TrkEta;
+      std::vector<float> TrkPhi;
+      std::vector<float> TrkE;
+      std::vector<float> TrkImpdz;
+      std::vector<float> TrkImpdzError;
+      std::vector<float> TrkImpdxy;
+      //std::vector<float> TrkImpdxyError;
+
+        std::vector daus(jet->daughterPtrVector());
         std::sort(daus.begin(), daus.end(), [](const reco::CandidatePtr &p1, const reco::CandidatePtr &p2) { return p1->pt() > p2->pt(); });
-        //for (unsigned int i2 = 0, n = daus.size(); i2 < n && i2 <= 3; ++i2) {
-	for (unsigned int i2 = 0; i2< daus.size(); ++i2) {
+        for (unsigned int i2 = 0; i2< daus.size(); ++i2) {
                 const pat::PackedCandidate &pfcand = dynamic_cast<const pat::PackedCandidate &>(*daus[i2]);
                 int charge = pfcand.charge();
 
-                //if (charge!=0 and pfcand.pt()>leadTrkPt){
                 if (charge!=0 and pfcand.pt()>0.0){
                 cout << " Jet Charge "<< charge<< endl;
-                leadTrkPt = pfcand.pt();
-                leadTrkEta = pfcand.eta();
-                leadTrkPhi = pfcand.phi();
-                leadTrkE = pfcand.energy();
-                leadTrkPID = pfcand.pdgId();
-		Impdz = pfcand.dz();
-		//ImpdzError = pfcand.dzError();
-		Impdxz = pfcand.dxy();
-		//ImpdxyError = pfcand.dxyError();
+		
+	  nTracks++;
+	  cout << "T1"<<endl;
+	  jetIndex.push_back(nJet_-1);
+	  cout << "T1"<<endl;
+	  TrkPID.push_back(pfcand.pdgId());
+	  cout << "T1"<<endl;
+	  TrkPt.push_back(pfcand.pt());
+	  cout << "T1"<<endl;
+	  TrkEta.push_back(pfcand.eta());
+	  cout << "T1"<<endl;
+	  TrkPhi.push_back(pfcand.phi());
+	  cout << "T1"<<endl;
+	  TrkE.push_back(pfcand.energy());
+	  cout << "T1"<<endl;
+	  TrkImpdz.push_back(pfcand.dz());
+	  cout << "T1"<<endl;
+	  //TrkImpdzError.push_back(pfcand.dzError());
+	  cout << "T1"<<endl;
+	  TrkImpdxy.push_back(pfcand.dxy());
+	  cout << "T1"<<endl;
+	  //TrkImpdxyError.push_back(pfcand.dxyError());
+	  cout << "T1"<<endl;
 
-            //    }
-          //  }
-        jetLeadTrackPID_.push_back(leadTrkPID);
-        jetLeadTrackPt_.push_back(leadTrkPt);
-        jetLeadTrackEta_.push_back(leadTrkEta);
-        jetLeadTrackPhi_.push_back(leadTrkPhi);
-        jetLeadTrackE_.push_back(leadTrkE);
-	impdz_.push_back(Impdz);
-	//impdzError_.push_back(ImpdzError);
-	impdxz_.push_back(Impdxz);
-	//impdxyError_.push_back(ImpdxyError);
-	   }
-	}		
 
+          }//if (charge!=0 and pfcand.pt()>0.0){ 
 
+    	}//for (unsigned int i2 = 0; i2< daus.size(); ++i2) {//
+	cout << "LEAD TRACK Info = " << endl;
 
-     cout << "LEAD TRACK Info = " << endl; 
+      jetNTracks_.push_back(nTracks);
+      jetIndex_.push_back(jetIndex);
+      jetTrackPID_.push_back(TrkPID);
+      jetTrackPt_.push_back(TrkPt);
+      jetTrackEta_.push_back(TrkEta);
+      jetTrackPhi_.push_back(TrkPhi);
+      jetTrackE_.push_back(TrkE);
+      jetTrackImpdz_.push_back(TrkImpdz);
+      //jetTrackImpdzError_.push_back(TrkImpdzError);
+      jetTrackImpdxy_.push_back(TrkImpdxy);
+      //jetTrackImpdxyError_.push_back(TrkImpdxyError);
+
     }
+
+
+
+
     if(!isTHINJet_) {
         if (runOn2016_){
             std::map<std::string, bool> Pass = jet2017ID_.LooseJetCut_2016(*jet);
@@ -1053,15 +1070,19 @@ jetTree::SetBranches(){
     AddBranch(&isPUJetIDTight_,  "isPUJetIDTight");
     AddBranch(&bRegNNCorr_,"bRegNNCorr");
     AddBranch(&bRegNNResolution_,"bRegNNResolution");
-    AddBranch(&jetLeadTrackPID_,"jetLeadTrackPID");
-    AddBranch(&jetLeadTrackPt_,"jetLeadTrackPt");
-    AddBranch(&jetLeadTrackEta_,"jetLeadTrackEta");
-    AddBranch(&jetLeadTrackPhi_,"jetLeadTrackPhi");
-    AddBranch(&jetLeadTrackE_,"jetLeadTrackE");
-    AddBranch(&impdz_,"impdz");
-    //AddBranch(&impdzError_,"impdzError");
-    AddBranch(&impdxz_,"impdxz");
-    //AddBranch(&impdxyError_,"impdxyError");
+
+    AddBranch(&jetNTracks_,  "jetNTracks");
+    AddBranch(&jetIndex_,    "jetIndex");
+    AddBranch(&jetTrackPID_, "jetTrackPID");
+    AddBranch(&jetTrackPt_,  "jetTrackPt");
+    AddBranch(&jetTrackEta_, "jetTrackEta");
+    AddBranch(&jetTrackPhi_, "jetTrackPhi");
+    AddBranch(&jetTrackE_,   "jetTrackE");
+    AddBranch(&jetTrackImpdz_,"jetTrackImpdz");
+    //AddBranch(&jetTrackImpdzError_, "jetTrackImpdzError");
+    AddBranch(&jetTrackImpdxy_,"jetTrackImpdxy");
+    //AddBranch(&jetTrackImpdxyError_,"jetTrackImpdxyError");
+
   }
 
   if(isFATJet_ || isAK8PuppiJet_ || isCA15PuppiJet_){
@@ -1195,16 +1216,18 @@ jetTree::Clear(){
   bRegNNCorr_.clear();
   bRegNNResolution_.clear();
   //Energy Fraction and Multiplicity
-
-  jetLeadTrackPID_.clear();
-  jetLeadTrackPt_.clear();
-  jetLeadTrackEta_.clear();
-  jetLeadTrackPhi_.clear();
-  jetLeadTrackE_.clear();
-  impdz_.clear();
-  //impdzError_.clear();
-  impdxz_.clear();
-  //impdxyError_.clear();
+  //for displaced jets
+  jetNTracks_.clear();
+  jetIndex_.clear();
+  jetTrackPID_.clear();
+  jetTrackPt_.clear();
+  jetTrackEta_.clear();
+  jetTrackPhi_.clear();
+  jetTrackE_.clear();
+  jetTrackImpdz_.clear();
+ // jetTrackImpdzError_.clear();
+  jetTrackImpdxy_.clear();
+  //jetTrackImpdxyError_.clear();
 
   jetCEmEF_.clear();
   jetCHadEF_.clear();

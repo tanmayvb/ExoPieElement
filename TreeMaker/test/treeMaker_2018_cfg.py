@@ -16,7 +16,7 @@ from FWCore.ParameterSet.VarParsing import VarParsing
 options = VarParsing ('analysis')
 
 options.register ('runOnMC',
-		  False,
+		  True,
 		  VarParsing.multiplicity.singleton,
 		  VarParsing.varType.bool,
 		  "runOnMC")
@@ -41,7 +41,7 @@ options.register ('useMiniAOD',
 		    "useMiniAOD")
 
 options.register ('runOn2018',
-                  False,
+                  True,
                   VarParsing.multiplicity.singleton,
                   VarParsing.varType.bool,
                   "runOn2018")
@@ -64,6 +64,16 @@ options.register ('runOn2018DGT',
                   VarParsing.varType.bool,
                   "runOn2018DGT")
 '''
+options.register ('runOnrp2HDM',
+		  False,
+		  VarParsing.multiplicity.singleton,
+		  VarParsing.varType.bool,
+		  "runOnrp2HDM")
+options.register ('runOnrpZpB',
+          False,
+          VarParsing.multiplicity.singleton,
+          VarParsing.varType.bool,
+          "runOnrpZpB")
 
 options.parseArguments()
 
@@ -108,7 +118,7 @@ elif options.runOn2016:
 print 'running code with GT:  ',process.GlobalTag.globaltag
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10)
+    input = cms.untracked.int32(-1)
 )
 
 
@@ -129,8 +139,14 @@ testFile=""
 # Input source
 if options.runOn2018:
         if options.runOnMC:
-            testFile='root://cms-xrd-global.cern.ch//store/mc/RunIIAutumn18MiniAOD/WW_TuneCP5_13TeV-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v2/110000/9238EA05-4391-9D45-BBC0-AC2D891C8F35.root'
-            #testFile='/store/mc/RunIIAutumn18MiniAOD/QCD_Pt_600to800_TuneCP5_13TeV_pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/80000/FC11B45B-C0E0-0F4B-8A04-E216B0A7C320.root'
+            if options.runOnrp2HDM:
+                 testFile = '/store/mc/RunIIAutumn18MiniAOD/bbDM_2HDMa_LO_5f_TuneCP3_13TeV_madgraph_pythia8/MINIAODSIM/rp_102X_upgrade2018_realistic_v15-v1/130000/136B73D1-35B4-B543-AD5B-027FB363F833.root'
+            elif options.runOnrpZpB:
+                testFile = '/store/mc/RunIIAutumn18MiniAOD/MonoHTobb_ZpBaryonic_TuneCP2_13TeV_madgraph-pythia8/MINIAODSIM/rp_102X_upgrade2018_realistic_v15-v1/100000/09CC7928-81B1-7745-9A29-2F2AC47A51AA.root'
+            else:
+                #testFile='root://cms-xrd-global.cern.ch//store/mc/RunIIAutumn18MiniAOD/WW_TuneCP5_13TeV-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v2/110000/9238EA05-4391-9D45-BBC0-AC2D891C8F35.root' ##Tested ok 05, March 2021
+		#testFile='/store/mc/RunIIAutumn18MiniAOD/WW_TuneCP5_13TeV-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v2/110000/9238EA05-4391-9D45-BBC0-AC2D891C8F35.root' ##Tested ok 05, March 2021
+		testFile='file:/afs/cern.ch/work/t/tsarkar/private/LV/EXO-MCsampleProductions/FullSimulation/RunIISummer20UL16/MiniAOD__CMSSW_10_6_17_patch1/src/MiniAOD.root'
         else:
             testFile='/store/data/Run2018A/MET/MINIAOD/17Sep2018-v1/80000/CEDA5E93-263E-B64F-87C0-D060C35AA00A.root'
 
@@ -158,8 +174,8 @@ updateJetCollection(
    jetCorrections = ('AK8PFPuppi', cms.vstring(['L2Relative', 'L3Absolute','L2L3Residual']), 'None'),
    btagDiscriminators = [
       'pfBoostedDoubleSecondaryVertexAK8BJetTags',
-      'pfDeepDoubleBJetTags:probQ',
-      'pfDeepDoubleBJetTags:probH',
+      #'pfDeepDoubleBJetTags:probQ',
+      #'pfDeepDoubleBJetTags:probH',
       'pfDeepDoubleBvLJetTags:probQCD',
       'pfDeepDoubleBvLJetTags:probHbb',
       'pfDeepDoubleCvLJetTags:probQCD',
@@ -236,11 +252,11 @@ if options.runOn2018:
      872421955,872421567,872437184,872421951,
      872421694,872437056,872437057,872437313])
 
-    
+
     process.ecalBadCalibReducedMINIAODFilter = cms.EDFilter("EcalBadCalibFilter",
       EcalRecHitSource = cms.InputTag("reducedEgamma:reducedEERecHits"),
       ecalMinEt        = cms.double(50.),
-      baddetEcal    = baddetEcallist, 
+      baddetEcal    = baddetEcallist,
       taggingMode = cms.bool(True),
       debug = cms.bool(False)
       )
@@ -418,15 +434,16 @@ process.patSmearedpuppiJets = process.patSmearedJets.clone(
 
 ## Tau ID embedding
 
-from ExoPieElement.TreeMaker.runTauIdMVA import *
-na = TauIDEmbedder(process, cms,
+#from ExoPieElement.TreeMaker.runTauIdMVA import *
+import RecoTauTag.RecoTau.tools.runTauIdMVA as tauIdConfig
+na =tauIdConfig.TauIDEmbedder(process, cms,
 		   debug=True,
-		   toKeep = ["2017v2"]
+		   toKeep = ["deepTau2017v2p1"]#2017v2"]
 		   )
 na.runTauID()
 
 ## adding payloads for Tau ID discriminator
-
+'''
 byIsolationMVArun2017v2DBoldDMwLTraw2017 = cms.string('byIsolationMVArun2017v2DBoldDMwLTraw2017'),
 byVVLooseIsolationMVArun2017v2DBoldDMwLT2017 = cms.string('byVVLooseIsolationMVArun2017v2DBoldDMwLT2017'),
 byVLooseIsolationMVArun2017v2DBoldDMwLT2017 = cms.string('byVLooseIsolationMVArun2017v2DBoldDMwLT2017'),
@@ -435,7 +452,7 @@ byMediumIsolationMVArun2017v2DBoldDMwLT2017 = cms.string('byMediumIsolationMVAru
 byTightIsolationMVArun2017v2DBoldDMwLT2017 = cms.string('byTightIsolationMVArun2017v2DBoldDMwLT2017'),
 byVTightIsolationMVArun2017v2DBoldDMwLT2017 = cms.string('byVTightIsolationMVArun2017v2DBoldDMwLT2017'),
 byVVTightIsolationMVArun2017v2DBoldDMwLT2017 = cms.string('byVVTightIsolationMVArun2017v2DBoldDMwLT2017')
-
+'''
 
 ## For normal AK4 jets jet energy correction on top of miniAOD
 from PhysicsTools.PatAlgos.producersLayer1.jetUpdater_cff import updatedPatJetCorrFactors
@@ -496,6 +513,8 @@ process.jetCorrSequenceForPrunedMass = cms.Sequence( process.patJetCorrFactorsRe
 
 
 process.load('ExoPieElement.TreeMaker.TreeMaker_cfi')
+process.tree.runOnrp2HDM           = cms.bool(options.runOnrp2HDM)
+process.tree.runOnrpZpB            = cms.bool(options.runOnrpZpB)
 process.tree.useJECText            = cms.bool(options.useJECText)
 process.tree.runOn2018             = cms.bool(options.runOn2018)
 process.tree.THINjecNames          = cms.vstring(AK4JECTextFiles)
@@ -529,20 +548,18 @@ else:
 
 
 ## output file name
-process.TFileService = cms.Service("TFileService",fileName = cms.string("ExoPieElementTuples.root"))
+process.TFileService = cms.Service("TFileService",fileName = cms.string("ExoPieElementTuples_Sig.root"))
 
 ##Trigger Filter
 if options.runOn2018:
     process.trigFilter = cms.EDFilter('TrigFilter',
                                       TrigTag = cms.InputTag("TriggerResults::HLT"),
-                                      TrigPaths = cms.vstring("HLT_PFMETNoMu120_PFMHTNoMu120_IDTight_PFHT60",
-                                                              "HLT_PFMETNoMu120_PFMHTNoMu120_IDTight",
-                                                              "HLT_PFMETNoMu140_PFMHTNoMu140_IDTight",
+                                      TrigPaths = cms.vstring(
+                                                             
                                                               "HLT_IsoMu24",
                                                               "HLT_Ele115_CaloIdVT_GsfTrkIdT",
                                                               "HLT_Ele50_CaloIdVT_GsfTrkIdT_PFJet165",
-                                                              "HLT_Ele32_WPTight_Gsf",
-                                                              "HLT_Photon200" ),
+                                                              "HLT_Ele32_WPTight_Gsf"),
                                       isMC_ = cms.bool(options.runOnMC)
                                      )
 elif options.runOn2017:
@@ -603,11 +620,11 @@ process.appliedRegpuppiJets = process.appliedRegJets.clone(JetTag=cms.InputTag("
 
 if not options.useJECText:
 	process.analysis = cms.Path(
-		process.ecalBadCalibReducedMINIAODFilter*
+	##process.ecalBadCalibReducedMINIAODFilter*
 		process.trigFilter
 		*process.rerunMvaIsolationSequence
-		*process.NewTauIDsEmbedded+
-		process.egammaPostRecoSeq+
+		##*process.NewTauIDsEmbedded+
+		*process.egammaPostRecoSeq+
 		process.appliedRegJets+
         # process.appliedRegpuppiJets+
 		process.patSmearedJets+
@@ -617,11 +634,11 @@ if not options.useJECText:
 		)
 else:
 	process.analysis = cms.Path(
-		process.ecalBadCalibReducedMINIAODFilter*
+		##process.ecalBadCalibReducedMINIAODFilter*
 		process.trigFilter
 		*process.rerunMvaIsolationSequence
-		*process.NewTauIDsEmbedded+
-		process.egammaPostRecoSeq+
+		##*process.NewTauIDsEmbedded+
+		*process.egammaPostRecoSeq+
 		process.appliedRegJets+
         # process.appliedRegpuppiJets+
 		process.patSmearedJets+
