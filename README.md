@@ -135,7 +135,9 @@ git cms-init
 git cms-merge-topic cms-egamma:EgammaPostRecoTools ##Twiki: https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
 
 git clone -b setup_LV_2018 git@github.com:ExoPie/ExoPieElement.git
-git clone -b setup_LV_2018 https://github.com/ExoPie/ExoPieElement.git
+
+git clone -b setup_LV_2018 https://github.com/tanmayvb/ExoPieElement.git ##Take it from Tanmay personal updated
+
 scram b -j 4
 
 git clone git@github.com:cms-jet/JetToolbox.git JMEAnalysis/JetToolbox -b jetToolbox_102X_v3
