@@ -87,6 +87,7 @@ class genInfoTree : public baseTree{
 
   int nGenPar_;
   //TClonesArray       *genParP4_;
+  TClonesArray       *genParVtx_;
   
   std::vector<float> genParPx_;
   std::vector<float> genParPy_;

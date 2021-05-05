@@ -14,6 +14,7 @@ genInfoTree::genInfoTree(std::string name, TTree* tree, const edm::ParameterSet&
   //genParP4_ =   new TClonesArray("TLorentzVector");
   //ak4GenJetP4_ =   new TClonesArray("TLorentzVector");
   //ak8GenJetP4_ =   new TClonesArray("TLorentzVector");
+  genParVtx_ =  new TClonesArray("TVector3");
 
   SetBranches();
 }
@@ -24,6 +25,7 @@ genInfoTree::~genInfoTree()
   //delete genParP4_;
   //delete ak4GenJetP4_;
   //delete ak8GenJetP4_;
+  delete genParVtx_;
 
 }
 
@@ -188,6 +190,9 @@ genInfoTree::Fill(const edm::Event& iEvent)
     genParPy_.push_back(geni->py());
     genParPz_.push_back(geni->pz());
     genParE_.push_back(geni->energy());
+
+    TVector3 vtx(geni->vx(),geni->vy(),geni->vz());
+    new( (*genParVtx_)[nGenPar_-1]) TVector3(vtx);
     
     genParQ_.push_back(geni->charge());
     genParId_.push_back(geni->pdgId());
@@ -325,6 +330,7 @@ genInfoTree::SetBranches(){
 
   AddBranch(&nGenPar_, "nGenPar");
   //AddBranch(&genParP4_, "genParP4");
+  AddBranch(&genParVtx_, "genParVtx");
   AddBranch(&genParPx_, "genParPx");
   AddBranch(&genParPy_, "genParPy");
   AddBranch(&genParPz_, "genParPz");
@@ -386,6 +392,7 @@ genInfoTree::Clear(){
   pdfscaleSysWeights_.clear();
   nGenPar_ =0;
   //genParP4_->Clear();
+  genParVtx_->Clear();
   genParPx_.clear();
   genParPy_.clear();
   genParPz_.clear();
